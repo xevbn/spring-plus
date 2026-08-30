@@ -1,0 +1,5 @@
+logging:
+  level:
+    org.springframework.boot: info
+    org.springframework.web: info
+    org.hibernate.sql: info
