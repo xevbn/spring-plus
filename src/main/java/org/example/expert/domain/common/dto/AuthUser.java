@@ -1,6 +1,7 @@
 package org.example.expert.domain.common.dto;
 
 import lombok.Getter;
+import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
 
 @Getter
@@ -14,5 +15,13 @@ public class AuthUser {
         this.id = id;
         this.email = email;
         this.userRole = userRole;
+    }
+
+    public static AuthUser from(User user) {
+        return new AuthUser(
+                user.getId(),
+                user.getEmail(),
+                user.getUserRole()
+        );
     }
 }
