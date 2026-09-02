@@ -3,3 +3,9 @@ logging:
     org.springframework.boot: info
     org.springframework.web: info
     org.hibernate.sql: info
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        generate_statistics: true
