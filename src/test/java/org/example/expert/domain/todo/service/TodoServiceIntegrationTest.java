@@ -2,12 +2,15 @@ package org.example.expert.domain.todo.service;
 
 import org.example.expert.client.WeatherClient;
 import org.example.expert.config.PersistenceConfig;
+import org.example.expert.config.QueryDSLConfig;
 import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.todo.TodoFixture;
 import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
 import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
 import org.example.expert.domain.todo.entity.Todo;
+import org.example.expert.domain.todo.repository.TodoQuerydslRepository;
+import org.example.expert.domain.todo.repository.TodoQuerydslRepositoryImpl;
 import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
@@ -34,7 +37,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 @DataJpaTest
-@Import({MySQLContainerSupport.class, TodoService.class, PersistenceConfig.class})
+@Import({
+        MySQLContainerSupport.class,
+        TodoService.class,
+        PersistenceConfig.class,
+        QueryDSLConfig.class
+})
 public class TodoServiceIntegrationTest {
     @MockBean
     private WeatherClient weatherClient;
@@ -129,5 +137,17 @@ public class TodoServiceIntegrationTest {
         assertThat(todos.getSize()).isGreaterThan(0);
         assertThat(todos.getTotalPages()).isEqualTo(10);
         assertThat(todos.getTotalElements()).isEqualTo(100);
+    }
+
+    @Test
+    @DisplayName("getTodo querydsl 적용 테스트")
+    void getTodo_querydsl_적용() {
+        //when
+        TodoResponse res = todoService.getTodo(12L);
+
+        //then
+        //fixture가 0부터 시작해서 id보다 1 작음
+        assertThat(res.getTitle()).isEqualTo("title 11");
+        assertThat(res.getContents()).isEqualTo("content 11");
     }
 }
