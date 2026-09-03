@@ -8,10 +8,12 @@ import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
 import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
+import org.example.expert.domain.todo.dto.response.TodoSearchResponse;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.todo.repository.TodoQuerydslRepository;
 import org.example.expert.domain.todo.repository.TodoQuerydslRepositoryImpl;
 import org.example.expert.domain.todo.repository.TodoRepository;
+import org.example.expert.domain.todo.repository.dto.TodoSearchConditions;
 import org.example.expert.domain.user.dto.response.UserResponse;
 import org.example.expert.domain.user.entity.User;
 import org.springframework.data.domain.Page;
@@ -73,5 +75,13 @@ public class TodoService {
     public TodoResponse getTodo(long todoId) {
         return todoRepository.findByIdWithUser(todoId)
                 .orElseThrow(() -> new InvalidRequestException("Todo not found"));
+    }
+
+    public Page<TodoSearchResponse> getTodoWithConditions(int page, int size, @Nullable String title,
+                                                          @Nullable LocalDateTime startTime, @Nullable LocalDateTime endTime, @Nullable String managerName) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        TodoSearchConditions conditions = new TodoSearchConditions(title, startTime, endTime, managerName);
+
+        return todoRepository.findBySearchConditions(pageable, conditions);
     }
 }
