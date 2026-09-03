@@ -16,6 +16,7 @@ import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
 import org.example.expert.domain.user.repository.UserRepository;
 import org.example.expert.support.MySQLContainerSupport;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,17 +54,16 @@ public class TodoServiceIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
-    User user;
+    static User user = new User(
+            "test@email.com",
+            "password",
+            UserRole.USER,
+            "nickname"
+    );
 
-    @BeforeEach
-    public void setup() {
-        user = new User(
-                "test@email.com",
-                "password",
-                UserRole.USER,
-                "nickname"
-        );
-
+    @BeforeAll
+    static void setup(@Autowired UserRepository userRepository,
+                      @Autowired TodoRepository todoRepository) {
         userRepository.saveAndFlush(user);
 
 
