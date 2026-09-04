@@ -1,5 +1,6 @@
 package org.example.expert.domain.todo.service;
 
+import jakarta.persistence.EntityManager;
 import org.example.expert.client.WeatherClient;
 import org.example.expert.config.PersistenceConfig;
 import org.example.expert.config.QueryDSLConfig;
@@ -8,10 +9,12 @@ import org.example.expert.domain.todo.TodoFixture;
 import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
 import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
+import org.example.expert.domain.todo.dto.response.TodoSearchResponse;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.todo.repository.TodoQuerydslRepository;
 import org.example.expert.domain.todo.repository.TodoQuerydslRepositoryImpl;
 import org.example.expert.domain.todo.repository.TodoRepository;
+import org.example.expert.domain.todo.repository.dto.TodoSearchConditions;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
 import org.example.expert.domain.user.repository.UserRepository;
@@ -53,6 +56,8 @@ public class TodoServiceIntegrationTest {
     private TodoRepository todoRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EntityManager em;
 
     static User user = new User(
             "test@email.com",
@@ -65,7 +70,6 @@ public class TodoServiceIntegrationTest {
     static void setup(@Autowired UserRepository userRepository,
                       @Autowired TodoRepository todoRepository) {
         userRepository.saveAndFlush(user);
-
 
         List<Todo> todos = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -149,5 +153,59 @@ public class TodoServiceIntegrationTest {
         //fixture가 0부터 시작해서 id보다 1 작음
         assertThat(res.getTitle()).isEqualTo("title 11");
         assertThat(res.getContents()).isEqualTo("content 11");
+    }
+
+    @Test
+    @DisplayName("getTodoWithConditions 통한 동적 조건 조회 테스트 - 모든 조건 포함")
+    void getTodoWithConditions_모든_조건() {
+        //when
+        Page<TodoSearchResponse> list = todoService.getTodoWithConditions(
+                1,
+                10,
+                "9",
+                LocalDateTime.now().minusHours(1),
+                LocalDateTime.now(),
+                "name"
+        );
+
+        //then
+        assertThat(list.getSize()).isGreaterThan(0);
+        assertThat(list.getTotalElements()).isEqualTo(19);
+    }
+
+    @Test
+    @DisplayName("getTodoWithConditions 통한 동적 조건 조회 테스트 - 범위 시작만 포함")
+    void getTodoWithConditions_범위_시작만_포함() {
+        //given
+        setTime();
+
+        //when
+        Page<TodoSearchResponse> list = todoService.getTodoWithConditions(
+                1,
+                10,
+                null,
+                LocalDateTime.now().minusHours(1),
+                null,
+                null
+        );
+
+        //then
+        assertThat(list.getSize()).isGreaterThan(0);
+        assertThat(list.getTotalElements()).isEqualTo(10);
+    }
+
+    private void setTime() {
+        List<Todo> todos = todoRepository.findAll();
+
+        for (Todo todo :todos) {
+            LocalDateTime now = LocalDateTime.now();
+
+            em.createNativeQuery("UPDATE todos SET created_at = :createdAt WHERE id = :todoId")
+                    .setParameter("createdAt", now.minusHours(todo.getId() % 10))
+                    .setParameter("todoId", todo.getId())
+                    .executeUpdate();
+        }
+
+        em.clear();
     }
 }

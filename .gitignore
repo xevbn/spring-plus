@@ -38,3 +38,7 @@ out/
 
 ### properties ###
 *.properties
+
+### gradlew ###
+gradlew*
+./gradle/
